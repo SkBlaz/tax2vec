@@ -1,0 +1,5 @@
+rdflib
+numpy
+networkx
+scipy
+sklearn

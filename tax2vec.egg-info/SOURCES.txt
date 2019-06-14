@@ -1,0 +1,12 @@
+MANIFEST.in
+README.md
+setup.py
+tax2vec/__init__.py
+tax2vec/models.py
+tax2vec/preprocessing.py
+tax2vec.egg-info/PKG-INFO
+tax2vec.egg-info/SOURCES.txt
+tax2vec.egg-info/dependency_links.txt
+tax2vec.egg-info/not-zip-safe
+tax2vec.egg-info/requires.txt
+tax2vec.egg-info/top_level.txt
