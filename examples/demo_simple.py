@@ -25,3 +25,25 @@ assert semantic_features_train.shape[1] == semantic_features_test.shape[1]
 ## what features are the most relevant?
 for a,b in zip(tax2vec_instance.semantic_candidates,tax2vec_instance.pagerank_scores):
     print("{} with score: {}".format(a,b))
+
+
+## or simply load from a given file
+inputs = []
+## source: http://www.thegrammarlab.com/?nor-portfolio=1000000-word-sample-corpora
+with open("../datasets/sampleACAD.txt") as of:
+    for line in of:
+        inputs.append(line.strip())
+
+## trainset part
+train_sequences, tokenizer, mlen = data_docs_to_matrix(inputs, mode="index_word",simple_clean=True) ## simple clean removes english stopwords -> this is very basic preprocessing.
+
+dmap = tokenizer.__dict__['word_index']
+
+## optionally feed targets=target_matrix for supervised feature construction
+tax2vec_instance = t2v.tax2vec(max_features=50, num_cpu=16, heuristic="pagerank", disambiguation_window = 2, start_term_depth = 3) ## start_term_depth denotes how high in the taxonomy must a given feature be to be considered
+
+semantic_features_train = tax2vec_instance.fit_transform(train_sequences, dmap)
+
+## what features are the most relevant?
+for a,b in zip(tax2vec_instance.semantic_candidates,tax2vec_instance.pagerank_scores):
+    print("{} with score: {}".format(a,b))
