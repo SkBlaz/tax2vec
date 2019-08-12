@@ -55,6 +55,7 @@ class tax2vec:
         self.document_split_symbol = document_split_symbol
         self.initial_terms = [] ## for personalized node ranking
         self.possible_heuristics = ["closeness_centrality","rarest_terms","mutual_info","pagerank"]
+        self.reversed_wmap = None
         self.doc_seqs = None
         self.parallel = True
         
@@ -76,12 +77,12 @@ class tax2vec:
 
         logging.info(message)
         
-    def fit(self,data,wmap):
+    def fit(self,data,wmap = None):
         '''
         A simple fit method
         '''        
         self.monitor("Constructing local taxonomy...")
-        self.wordnet_features(data,wmap)
+        self.wordnet_features(data, wmap)
         
     def disambiguation_synset(self, word, document, word_index=None):
 
@@ -131,8 +132,10 @@ class tax2vec:
         '''
         A method to parse documents in parallel.
         '''
-        
-        document = [self.reversed_wmap[x] for x in vec.tolist() if x > 0 and x in self.reversed_wmap.keys()]        
+        if self.reversed_wmap:
+            document = [self.reversed_wmap[x] for x in vec.tolist() if x > 0 and x in self.reversed_wmap.keys()]
+        else:
+            document = vec.split()
         hypernyms = []
         local_graph = []
         initial_hypernyms = []
@@ -164,7 +167,7 @@ class tax2vec:
         initial_hypernyms = set(initial_hypernyms)
         return (initial_hypernyms,idx,hypernyms,local_graph)
             
-    def wordnet_features(self,data, wmap):
+    def wordnet_features(self,data, wmap = None):
 
         """
         Construct word wector maps and use graph-based properties to select relevant number of features..
@@ -173,10 +176,12 @@ class tax2vec:
         ## store sequences for further transformations
         self.doc_seqs = data        
         self.monitor("Constructing semantic vectors of size: {}".format(self.max_features))
-        self.reversed_wmap = {v : k for k,v in wmap.items()}
+        if wmap:
+            self.reversed_wmap = {v : k for k,v in wmap.items()}
 
         flist = []
-        tw = len(wmap.keys())
+        if wmap:
+            tw = len(wmap.keys())
         ldct = {}
         cnts = {}        
         processed = 0        
@@ -203,7 +208,10 @@ class tax2vec:
             for enx, vec in enumerate(self.doc_seqs):
                 if enx % 1000 == 0:
                     self.monitor("Processed {} documents..".format(enx))
-                document = [self.reversed_wmap[x] for x in vec.tolist() if x > 0 and x in self.reversed_wmap.keys()]
+                if self.reversed_wmap:
+                    document = [self.reversed_wmap[x] for x in vec.tolist() if x > 0 and x in self.reversed_wmap.keys()]
+                else:
+                    document = vec
                 hypernyms = []
                 for ix,word in enumerate(document):
                     wsyn = self.disambiguation_synset(word, document, ix)
@@ -436,7 +444,7 @@ class tax2vec:
         else:
             return m
 
-    def fit_transform(self,data,wmap):
+    def fit_transform(self,data,wmap = None):
 
         '''
         The generic fit-transform combination.

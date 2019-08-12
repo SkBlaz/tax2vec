@@ -286,6 +286,7 @@ def data_docs_to_matrix(data_docs, mode="count",max_features = 10000, ngram_rang
         return (padded_docs, tokenizer, maxlen)
                 
     if mode == "index_word":
+        
         tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=None, filters='!"#$%&()*+,-./:;<=>?@[\]^_`{|}~', lower=True, split=" ", char_level=False, oov_token=None)
 
         tokenizer.fit_on_texts(data_docs)
