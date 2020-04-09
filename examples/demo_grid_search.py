@@ -8,29 +8,29 @@ from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-## Can just semantic features also serve well? (spoiler: not really)
+## For some data sets, semantic features do not help!
 
-bbc_dataset_train = pd.read_csv("../datasets/bbc/train.tsv", sep = "\t")
-bbc_dataset_dev = pd.read_csv("../datasets/bbc/dev.tsv", sep = "\t")
-bbc_dataset_test = pd.read_csv("../datasets/bbc/test.tsv", sep = "\t")
+insults_dataset_train = pd.read_csv("../datasets/insults/train.tsv", sep = "\t")
+insults_dataset_dev = pd.read_csv("../datasets/insults/dev.tsv", sep = "\t")
+insults_dataset_test = pd.read_csv("../datasets/insults/test.tsv", sep = "\t")
 
-train_text = bbc_dataset_train['text_a'].values.tolist()
-dev_text = bbc_dataset_dev['text_a'].values.tolist()
+train_text = insults_dataset_train['text_a'].values.tolist()
+dev_text = insults_dataset_dev['text_a'].values.tolist()
 
-train_targets = bbc_dataset_train['label'].values.tolist()
-dev_targets = bbc_dataset_dev['label'].values.tolist()
+train_targets = insults_dataset_train['label'].values.tolist()
+dev_targets = insults_dataset_dev['label'].values.tolist()
 
 ## we are doing gridsearchCV, so this shall be merged.
 train_text = train_text + dev_text
 train_targets = train_targets + dev_targets
 
-test_text = bbc_dataset_test['text_a'].values
-test_targets = bbc_dataset_test['label'].values
+test_text = insults_dataset_test['text_a'].values
+test_targets = insults_dataset_test['label'].values
 
 final_output = []
 for depth in [1,2,3,4,5]:
     for heuristic in ["closeness_centrality","rarest_terms","mutual_info","pagerank"]:
-        for sem_feat_num in [10,100,1000,3000,15000]:
+        for sem_feat_num in [0,10,100,1000,3000,15000]:
             ## trainset part
             train_sequences, tokenizer, mlen = data_docs_to_matrix(train_text, mode="index_word",simple_clean=True) ## simple clean removes english stopwords -> this is very basic preprocessing.
 
@@ -38,18 +38,20 @@ for depth in [1,2,3,4,5]:
 
             train_matrices = []
             test_matrices = []
-            
-            ## optionally feed targets=target_matrix for supervised feature construction
-            ## start_term_depth denotes how high in the taxonomy must a given feature be to be considered
-            tax2vec_instance = t2v.tax2vec(max_features=sem_feat_num, num_cpu=8, heuristic=heuristic, disambiguation_window = 3, start_term_depth = depth, targets = train_targets)
 
-            semantic_features_train = tax2vec_instance.fit_transform(train_sequences, dmap)
-            train_matrices.append(semantic_features_train)
+            if sem_feat_num > 0:
 
-            ## to obtain test features, simply transform.
-            test_sequences = tokenizer.texts_to_sequences(test_text) ## tokenizer is already fit on train data
+                ## optionally feed targets=target_matrix for supervised feature construction
+                ## start_term_depth denotes how high in the taxonomy must a given feature be to be considered
+                tax2vec_instance = t2v.tax2vec(max_features=sem_feat_num, num_cpu=8, heuristic=heuristic, disambiguation_window = 3, start_term_depth = depth, targets = np.array(train_targets))
 
-            test_matrices.append(tax2vec_instance.transform(test_sequences))
+                semantic_features_train = tax2vec_instance.fit_transform(train_sequences, dmap)
+                train_matrices.append(semantic_features_train)
+
+                ## to obtain test features, simply transform.
+                test_sequences = tokenizer.texts_to_sequences(test_text) ## tokenizer is already fit on train data
+
+                test_matrices.append(tax2vec_instance.transform(test_sequences))
 
             tfidf_word_train, tokenizer_2, _ = data_docs_to_matrix(train_text, mode="matrix_word",max_features=10000)
             

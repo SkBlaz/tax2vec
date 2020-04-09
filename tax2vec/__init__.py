@@ -454,4 +454,3 @@ class tax2vec:
         self.wordnet_features(data,wmap)
         self.monitor("Constructing feature vectors..")
         return self.transform()
-
