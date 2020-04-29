@@ -36,7 +36,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:
 logging.getLogger().setLevel(logging.INFO)
 
 class tax2vec:
-    def __init__(self, max_features=500, disambiguation_window=10,document_split_symbol="mergertag",heuristic="mutual_info", num_cpu=1,hypernym_distribution = "./hypernym_space/dist1.npy",targets=None,class_names=None, start_term_depth = 0):
+    def __init__(self, max_features=500, disambiguation_window=10,document_split_symbol="mergertag",heuristic="mutual_info", num_cpu="all",hypernym_distribution = "./hypernym_space/dist1.npy",targets=None,class_names=None, start_term_depth = 1):
 
         '''
         Initiate the core properties
@@ -153,7 +153,7 @@ class tax2vec:
                     for en, x in enumerate(path):
                         if en > self.start_term_depth:
                             if parent is not None:
-
+                                
                                 ## add hypernyms to global taxonomy
                                 local_graph.append((parent.name(),x.name()))
 

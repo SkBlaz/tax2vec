@@ -138,6 +138,18 @@ semantic_features_test = tax2vec_instance.transform(test_sequences)
 
 ```
 
+## Relevant hyperparameters
+| Hyperparameter                   | Default value | Possible values                                                  |
+|----------------------------------|---------------|------------------------------------------------------------------|
+| max_features                     | 100           | int                                                              |
+| disambiguation_window            | 3             | int                                                              |
+| heuristic                        | "mutual_info" | ["closeness_centrality","rarest_terms","mutual_info","pagerank"] |
+| num_cpu                          | 8             | int or "all" - automatic detection                                                             |
+| hypernym_distribution (optional) | somefile.npy  | "./hypernym_space/dist1.npy"                                     |
+| targets                          | None          | numeric vector of targets (for supervised feature ranking)       |
+| class_names                      | None          | names of classes                                                 |
+| start_term_depth                 | 0             | terms at depth *larger than this* will be considered             |
+
 
 ## Example uses
 

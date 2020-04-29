@@ -153,7 +153,7 @@ class tax2vec:
                     for en, x in enumerate(path):
                         if en > self.start_term_depth:
                             if parent is not None:
-
+                                
                                 ## add hypernyms to global taxonomy
                                 local_graph.append((parent.name(),x.name()))
 
@@ -454,4 +454,3 @@ class tax2vec:
         self.wordnet_features(data,wmap)
         self.monitor("Constructing feature vectors..")
         return self.transform()
-
