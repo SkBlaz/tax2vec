@@ -36,7 +36,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:
 logging.getLogger().setLevel(logging.INFO)
 
 class tax2vec:
-    def __init__(self, max_features=500, disambiguation_window=10,document_split_symbol="mergertag",heuristic="mutual_info", num_cpu="all",hypernym_distribution = "./hypernym_space/dist1.npy",targets=None,class_names=None, start_term_depth = 1):
+    def __init__(self, max_features=500, disambiguation_window=3,document_split_symbol="mergertag",heuristic="mutual_info", num_cpu="all",hypernym_distribution = "./hypernym_space/dist1.npy",targets=None,class_names=None, start_term_depth = 0):
 
         '''
         Initiate the core properties

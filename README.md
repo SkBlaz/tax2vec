@@ -151,6 +151,12 @@ semantic_features_test = tax2vec_instance.transform(test_sequences)
 | start_term_depth                 | 0             | terms at depth *larger than this* will be considered             |
 
 
+## Common behavior
+Current experiments indicate, that a rather small number of semantic features can greatly impact the classifier's performance. See examples to
+reproduce the following benchmark, based on the PAN Age data set.
+
+![Benchmark](benchmark.png)
+
 ## Example uses
 
 To reproduce SOTA results on the classification task, you can run:

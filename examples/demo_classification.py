@@ -4,7 +4,7 @@ from tax2vec.preprocessing import *
 from tax2vec.models import *
 import numpy as np
 
-def example_run(semantic_features=10):
+def example_run(semantic_features=10, heuristic = "closeness_centrality"):
     labels, d_corpus,class_names = generate_corpus("../datasets/PAN_2016_age_srna_en.csv.gz",100000000000) ## the number is max number of docs per user
 
     ## use this tokenizer on whole corpus to guarantee equal splits! Note that train tokenizer is used again to not include any test info!
@@ -24,7 +24,11 @@ def example_run(semantic_features=10):
         ## get the word index mappings for hypernym mappings
         dmap = tokenizer.__dict__['word_index']
         if semantic_features !=0:
-            tax2vec_instance = t2v.tax2vec(max_features=semantic_features, targets=train_y,num_cpu=8,heuristic="closeness_centrality",class_names=class_names)
+            tax2vec_instance = t2v.tax2vec(max_features=semantic_features,
+                                           targets=train_y,
+                                           num_cpu=8,
+                                           heuristic=heuristic,
+                                           class_names=class_names)
             semantic_features_train = tax2vec_instance.fit_transform(train_sequences, dmap)
 
             ## get test features -- t2v
@@ -51,11 +55,29 @@ def example_run(semantic_features=10):
         ## run the SVM, where C=50
         tmp_result = linear_SVM(features_train,features_test,train_y,test_y,cparam=50)
 
+        return tmp_result
+
 if __name__ == "__main__":
 
-    print("No semantic features")
-    example_run(0)
-    print("10 semantic features")
-    example_run(10)
-    print("50 semantic features")
-    example_run(50)
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    
+    output = []
+    for heuristic in ["closeness_centrality","rarest_terms","mutual_info","pagerank"]:
+        for fn in [0,5,10,15,20,25,50,100,200,500,1000]:
+            score = example_run(fn, heuristic = heuristic)
+            output.append([fn,score, heuristic])
+
+    dfx = pd.DataFrame(output)
+    dfx.columns = ['Number of features','Performance (F1)','Heuristic']
+    sns.lineplot(dfx['Number of features'], dfx['Performance (F1)'], hue = dfx['Heuristic'])
+    plt.tight_layout()
+    plt.savefig("../benchmark.png",dpi = 300)
+        
+    # print("No semantic features")
+    # example_run(0)
+    # print("10 semantic features")
+    # example_run(10)
+    # print("50 semantic features")
+    # example_run(50)
