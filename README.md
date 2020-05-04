@@ -197,14 +197,16 @@ See LICENSE.md for more details.
 Please cite:
 
 ```
-@misc{krlj2019tax2vec,
-    title={tax2vec: Constructing Interpretable Features from Taxonomies for Short Text Classification},
-    author={Blaž Škrlj and Matej Martinc and Jan Kralj and Nada Lavrač and Senja Pollak},
-    year={2019},
-    eprint={1902.00438},
-    archivePrefix={arXiv},
-    primaryClass={cs.CL}
+@article{SKRLJ2020101104,
+title = "tax2vec: Constructing Interpretable Features from Taxonomies for Short Text Classification",
+journal = "Computer Speech & Language",
+pages = "101104",
+year = "2020",
+issn = "0885-2308",
+doi = "https://doi.org/10.1016/j.csl.2020.101104",
+url = "http://www.sciencedirect.com/science/article/pii/S0885230820300371",
+author = "Blaž Škrlj and Matej Martinc and Jan Kralj and Nada Lavrač and Senja Pollak",
+keywords = "taxonomies, vectorization, text classification, short documents, feature construction, semantic enrichment",
+abstract = "The use of background knowledge is largely unexploited in text classification tasks. This paper explores word taxonomies as means for constructing new semantic features, which may improve the performance and robustness of the learned classifiers. We propose tax2vec, a parallel algorithm for constructing taxonomy-based features, and demonstrate its use on six short text classification problems: prediction of gender, personality type, age, news topics, drug side effects and drug effectiveness. The constructed semantic features, in combination with fast linear classifiers, tested against strong baselines such as hierarchical attention neural networks, achieves comparable classification results on short text documents. The algorithm’s performance is also tested in a few-shot learning setting, indicating that the inclusion of semantic features can improve the performance in data-scarce situations. The tax2vec capability to extract corpus-specific semantic keywords is also demonstrated. Finally, we investigate the semantic space of potential features, where we observe a similarity with the well known Zipf’s law."
 }
 ```
-
-https://arxiv.org/abs/1902.00438
