@@ -13,7 +13,7 @@ Below you shall find instructions for installation of tax2vec library.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
+What things you need to install the software and how to install them. Generic install:
 
 ```
 pip install -r requirements.txt
@@ -103,7 +103,7 @@ import tax2vec as t2v
 from tax2vec.preprocessing import *
 ```
 
-Next, we load the corpus using in-build methods. Note that any tokenizer can be used for this!
+Next, we load the corpus using in-built methods. Note that any tokenizer can be used for this!
 
 ```python
 # load corpus
