@@ -43,6 +43,11 @@ import nltk
 nltk.download('punct')
 ```
 
+## Tests
+The minimal tests that need to pass in order to assure the library works OK can be run from the examples folder as:
+```
+bash run_all_tests.sh
+```
 ## A self contained example
 
 Assume you are given a blob of documents, and are asked to generate semantic features. The following examples starts from randomly selected Brexit Wikipedia article:
