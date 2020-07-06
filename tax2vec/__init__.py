@@ -331,6 +331,12 @@ class tax2vec:
             
             ## select optimal splitting target
             mutual_info_scores = []
+            ## transform to one-hot encoding if needed
+            if np.ndim(self.targets) == 1:
+                n = len(self.targets)
+                onehot = np.zeros((n, 2))
+                onehot[np.arange(n), self.targets] = 1
+                self.targets = onehot
             for j in range(self.targets.shape[1]):
                 mutual_info_tmp = mutual_info_classif(np.rint(tmp),self.targets[:,j])
                 mutual_info_scores.append(mutual_info_tmp)                
