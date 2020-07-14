@@ -334,7 +334,7 @@ class tax2vec:
             ## transform to one-hot encoding if needed
             if np.ndim(self.targets) == 1:
                 n = len(self.targets)
-                onehot = np.zeros((n, 2))
+                onehot = np.zeros((n, max(self.targets)+1))
                 onehot[np.arange(n), self.targets] = 1
                 self.targets = onehot
             for j in range(self.targets.shape[1]):
