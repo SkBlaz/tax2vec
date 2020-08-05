@@ -8,23 +8,18 @@ train_text = ["Brexit (/ˈbrɛksɪt, ˈbrɛɡzɪt/;[1] a portmanteau of British 
 
 test_text = ["When the European Communities (EC) came into being in 1958, the UK chose to remain aloof and instead join the alternative bloc, EFTA. Almost immediately the British government regretted its decision, and in 1961, along with Denmark, Ireland and Norway, the UK applied to join the three Communities. However, President Charles de Gaulle saw British membership as a Trojan horse for US influence, and vetoed it; all four applications were suspended. The four countries resubmitted their applications in 1967, and the French veto was lifted upon Georges Pompidou succeeding de Gaulle in 1969.[2] In 1970, accession negotiations took place between the UK Government, led by Conservative Prime Minister Edward Heath, the European Communities and various European leaders. Despite disagreements over the CAP and the UK's relationship with the Commonwealth, terms were agreed. In October 1971, after a lengthy Commons debate, MPs voted 356-244 in favour of joining the EEC."]
 
-## trainset part
-train_sequences, tokenizer, mlen = data_docs_to_matrix(train_text, mode="index_word",simple_clean=True) ## simple clean removes english stopwords -> this is very basic preprocessing.
-dmap = tokenizer.__dict__['word_index']
-
 ## optionally feed targets=target_matrix for supervised feature construction
-tax2vec_instance = t2v.tax2vec(max_features=10, num_cpu=8, heuristic="pagerank", disambiguation_window = 2, start_term_depth = 3) ## start_term_depth denotes how high in the taxonomy must a given feature be to be considered
+tax2vec_instance = t2v.tax2vec(max_features=10, num_cpu=8, heuristic="pagerank", disambiguation_window=2, start_term_depth=3, simple_clean=True) ## start_term_depth denotes how high in the taxonomy must a given feature be to be considered
 
-semantic_features_train = tax2vec_instance.fit_transform(train_sequences, dmap)
+semantic_features_train = tax2vec_instance.fit_transform(train_text)
 
 ## to obtain test features, simply transform.
-test_sequences = tokenizer.texts_to_sequences(test_text) ## tokenizer is already fit on train data
-semantic_features_test = tax2vec_instance.transform(test_sequences)
+semantic_features_test = tax2vec_instance.transform(test_text)
 assert semantic_features_train.shape[1] == semantic_features_test.shape[1]
 
 ## what features are the most relevant?
-for a,b in zip(tax2vec_instance.semantic_candidates,tax2vec_instance.pagerank_scores):
-    print("{} with score: {}".format(a,b))
+for a, b in zip(tax2vec_instance.semantic_candidates, tax2vec_instance.pagerank_scores):
+    print("{} with score: {}".format(a, b))
 
 
 ## or simply load from a given file
@@ -34,16 +29,10 @@ with open("../datasets/sampleACAD.txt") as of:
     for line in of:
         inputs.append(line.strip())
 
-## trainset part
-train_sequences, tokenizer, mlen = data_docs_to_matrix(inputs, mode="index_word",simple_clean=True) ## simple clean removes english stopwords -> this is very basic preprocessing.
-
-dmap = tokenizer.__dict__['word_index']
-
 ## optionally feed targets=target_matrix for supervised feature construction
-tax2vec_instance = t2v.tax2vec(max_features=50, num_cpu=16, heuristic="pagerank", disambiguation_window = 2, start_term_depth = 3) ## start_term_depth denotes how high in the taxonomy must a given feature be to be considered
-
-semantic_features_train = tax2vec_instance.fit_transform(train_sequences, dmap)
+tax2vec_instance = t2v.tax2vec(max_features=50, num_cpu=16, heuristic="pagerank", disambiguation_window=2, start_term_depth=3, simple_clean=True) ## start_term_depth denotes how high in the taxonomy must a given feature be to be considered
+semantic_features_train = tax2vec_instance.fit_transform(inputs)
 
 ## what features are the most relevant?
-for a,b in zip(tax2vec_instance.semantic_candidates,tax2vec_instance.pagerank_scores):
-    print("{} with score: {}".format(a,b))
+for a, b in zip(tax2vec_instance.semantic_candidates, tax2vec_instance.pagerank_scores):
+    print("{} with score: {}".format(a, b))
