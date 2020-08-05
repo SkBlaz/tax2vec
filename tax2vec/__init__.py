@@ -368,13 +368,11 @@ class tax2vec:
             return
         else:
             self.knowledge_base = self.map_data_to_digraph(path)
-            undir = self.knowledge_base.to_undirected()
-            n = nx.number_connected_components(undir)
-            print(n)
 
         if wmap:
             self.reversed_wmap = {v: k for k, v in wmap.items()}
         self.monitor("Looking up hypernyms using knowledge graph")
+        
         for enx, vec in enumerate(self.doc_seqs):
             result = self.one_document_hypernyms(vec, enx, hyp)
             initial_terms, idx, hypernyms, graph = result
