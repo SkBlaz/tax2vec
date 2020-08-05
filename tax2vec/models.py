@@ -1,4 +1,4 @@
-## some simple models
+# some simple models
 
 from sklearn import svm
 from sklearn.svm import LinearSVC
@@ -8,12 +8,12 @@ import numpy as np
 try:
     import tensorflow as tf
     from tensorflow import keras
-except:
+except BaseException:
     pass
 
 try:
     from tensorflow.python.keras.layers.advanced_activations import ELU
-except:
+except BaseException:
     ELU = tf.keras.backend.elu
 
 
@@ -24,13 +24,13 @@ def linear_SVM(train_x, test_x, train_y, test_y, cparam=1):
     new_test_y = []
 
     for y in train_y:
-        if type(y) is list:
+        if isinstance(y, list):
             new_train_y.append(list(y).index(1))
         else:
             new_train_y.append(y)
 
     for y in test_y:
-        if type(y) is list:
+        if isinstance(y, list):
             new_test_y.append(list(y).index(1))
         else:
             new_test_y.append(y)
@@ -50,7 +50,7 @@ def nn_batch_generator(X_data, y_data, batch_size):
     number_of_batches = samples_per_epoch / batch_size
     counter = 0
     index = np.arange(np.shape(y_data)[0])
-    while 1:
+    while True:
         index_batch = index[batch_size * counter:batch_size * (counter + 1)]
         X_batch = X_data[index_batch, :].todense()
         y_batch = y_data[index_batch]
@@ -60,15 +60,22 @@ def nn_batch_generator(X_data, y_data, batch_size):
             counter = 0
 
 
-def simple_dnn(train_x, test_x, train_y, test_y, dnn_setting="1000,500,100", batch_size=10, epochs=10):
+def simple_dnn(
+        train_x,
+        test_x,
+        train_y,
+        test_y,
+        dnn_setting="1000,500,100",
+        batch_size=10,
+        epochs=10):
     train_x = train_x.tocsr()
     test_x = test_x.tocsr()
-    if type(train_y) is list:
+    if isinstance(train_y, list):
         n = len(train_y)
         onehot = np.zeros((n, max(train_y) + 1))
         onehot[np.arange(n), train_y] = 1
         train_y = onehot
-    if type(test_y) is list:
+    if isinstance(test_y, list):
         n = len(test_y)
         onehot = np.zeros((n, max(test_y) + 1))
         onehot[np.arange(n), test_y] = 1
@@ -76,7 +83,13 @@ def simple_dnn(train_x, test_x, train_y, test_y, dnn_setting="1000,500,100", bat
     model = keras.Sequential()
     # Adds a densely-connected layer with 64 units to the model:
     layer_sizes = [int(x) for x in dnn_setting.split(",")]
-    model.add(keras.layers.Dense(layer_sizes[0], activation='relu', input_shape=(train_x.shape[1],)))
+    model.add(
+        keras.layers.Dense(
+            layer_sizes[0],
+            activation='relu',
+            input_shape=(
+                train_x.shape[1],
+            )))
 
     # Add another:
     model.add(keras.layers.Dropout(0.3))
@@ -111,8 +124,14 @@ def simple_dnn(train_x, test_x, train_y, test_y, dnn_setting="1000,500,100", bat
     return copt
 
 
-def SRNA(train_features, test_features, train_y, test_y, maxlen=0, epoch_num=5):
-    ## process data
+def SRNA(
+        train_features,
+        test_features,
+        train_y,
+        test_y,
+        maxlen=0,
+        epoch_num=5):
+    # process data
     x_train, semantic_train = train_features
     x_test, semantic_test = test_features
     labels_train = train_y
@@ -134,7 +153,7 @@ def SRNA(train_features, test_features, train_y, test_y, maxlen=0, epoch_num=5):
         x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
         x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
 
-    ## a hybrid model with two inputs!
+    # a hybrid model with two inputs!
     input1 = tf.keras.layers.Input(shape=(x_train.shape[1],))
     e1 = tf.keras.layers.Embedding(max_features, embedding_dims)(input1)
     d1 = tf.keras.layers.Dropout(0.5)(e1)
@@ -144,8 +163,12 @@ def SRNA(train_features, test_features, train_y, test_y, maxlen=0, epoch_num=5):
     #                    activation='relu',
     #                    strides=1)(d1)
     c0 = tf.keras.layers.Bidirectional(
-        tf.keras.layers.LSTM(300, return_sequences=False, dropout=0.25, recurrent_dropout=0.25, activation='softmax'))(
-        d1)
+        tf.keras.layers.LSTM(
+            300,
+            return_sequences=False,
+            dropout=0.25,
+            recurrent_dropout=0.25,
+            activation='softmax'))(d1)
     #        gp1 = tf.keras.layers.GlobalMaxPooling1D()(c1)
     de1 = tf.keras.layers.Dense(hidden_dims)(c0)
     d1_1 = tf.keras.layers.Dropout(0.3)(de1)
@@ -161,7 +184,9 @@ def SRNA(train_features, test_features, train_y, test_y, maxlen=0, epoch_num=5):
     dp_1 = tf.keras.layers.Dropout(0.3)(mix1)
     da_2 = ELU()(dp_1)
     mix2 = tf.keras.layers.Dense(50)(da_2)
-    out = tf.keras.layers.Dense(labels_train.shape[1], activation="sigmoid")(mix2)
+    out = tf.keras.layers.Dense(
+        labels_train.shape[1],
+        activation="sigmoid")(mix2)
     model = tf.keras.models.Model(inputs=[input1, input2], outputs=out)
 
     model.compile(loss='binary_crossentropy',
@@ -186,7 +211,8 @@ def SRNA(train_features, test_features, train_y, test_y, maxlen=0, epoch_num=5):
     print("Current result {}".format(copt))
     return copt
 
-# def hierarchical_attention(train_features,test_features,train_y,test_y,tokenizer,parameter_dict=None):
+# def
+# hierarchical_attention(train_features,test_features,train_y,test_y,tokenizer,parameter_dict=None):
 
 #     print(tokenizer.__dict__.keys())
 #     vocab_size = len(tokenizer.__dict__['word_index']) + 1
