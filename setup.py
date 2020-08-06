@@ -10,7 +10,7 @@ from setuptools import setup,find_packages
 from setuptools.extension import Extension
     
 setup(name='tax2vec',
-      version='0.23',
+      version='0.24',
       description="Semantic space vectorization algorithm",
       url='http://github.com/skblaz/tax2vec',
       author='Blaž Škrlj',
