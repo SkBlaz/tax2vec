@@ -370,7 +370,7 @@ class tax2vec:
 
                 if out is not None:
                     hypernyms.extend(out)
-                    for h in hypernyms:
+                    for h in out:
                         local_graph.append((str(token), h))
 
         return initial_terms, idx, hypernyms, local_graph
