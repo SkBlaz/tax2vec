@@ -125,7 +125,8 @@ semantic_features_test = tax2vec_instance.transform(test_x)
 
 ```
 
-(Beta feature, in serial mode only) It is also possible to obtain features from Microsoft Concept Graph via function knowledge_graph_features(). It uses spacy to find nouns in the sentence and then look up hypernyms in the graph. To do this, we just need to pass argument *knowledge_graph=True* when using Microsoft Concept Graph. Also the path to the file with knowledge graph relations should be specified (parameter *path*). Parameter *hyp* specifies how many hypernyms from each relevant word from our text we should take in account.
+# Making features from knowledge graphs?
+(Beta feature, in serial mode only) It is also possible to obtain features from e.g., Microsoft Concept Graph via function knowledge_graph_features(). It uses SpaCy to find nouns in the sentence and then look up generalizations in the graph. To do this, we just need to pass argument *knowledge_graph=True* when e.g., using Microsoft Concept Graph. Also the path to the file with knowledge graph relations should be specified (parameter *path*). Parameter *hyp* specifies how many hypernyms from each relevant word from our text we should take in account. Example follows:
 
 ```python
 
