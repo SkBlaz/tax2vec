@@ -138,7 +138,7 @@ PAN_dataset = pd.read_csv("../datasets/PAN_2016_age_srna_en.tsv", sep="\t")
 tax2vec_instance = t2v.tax2vec(max_features=10, num_cpu=8, heuristic="pagerank", disambiguation_window=2, start_term_depth=3, knowledge_graph=True, mode="index_word", simple_clean=True, hyp="all", path="../data-concept/refined.txt") 
 
 ## and fit and transform
-semantic_features_train = tax2vec_instance.transform(train_x)
+semantic_features_train = tax2vec_instance.fit_transform(train_x)
 
 ## just transform
 semantic_features_test = tax2vec_instance.transform(test_x)
