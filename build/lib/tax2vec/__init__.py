@@ -1,5 +1,5 @@
 ##############################
-## tax2vec --- Blaz Skrlj 2019
+# tax2vec --- Blaz Skrlj 2019
 ##############################
 import time
 
@@ -7,7 +7,7 @@ try:
     from tqdm import tqdm
 
     pbar = True
-except:
+except BaseException:
     pbar = False
     pass
 import multiprocessing
@@ -39,16 +39,29 @@ import spacy
 import re
 import tax2vec.preprocessing as prep
 
-logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+logging.basicConfig(
+    format='%(asctime)s - %(message)s',
+    datefmt='%d-%b-%y %H:%M:%S')
 logging.getLogger().setLevel(logging.INFO)
 
 
 class tax2vec:
-    def __init__(self, max_features=100, disambiguation_window=3, document_split_symbol="MERGERTAG",
-                 heuristic="mutual_info", num_cpu="all", hypernym_distribution="./hypernym_space/dist1.npy",
-                 targets=None, class_names=None, start_term_depth=0, knowledge_graph=False, mode="index_word",
-                 simple_clean=False, hyp='all', path=None):
-
+    def __init__(
+            self,
+            max_features=100,
+            disambiguation_window=3,
+            document_split_symbol="MERGERTAG",
+            heuristic="mutual_info",
+            num_cpu="all",
+            hypernym_distribution="./hypernym_space/dist1.npy",
+            targets=None,
+            class_names=None,
+            start_term_depth=0,
+            knowledge_graph=False,
+            mode="index_word",
+            simple_clean=False,
+            hyp='all',
+            path=None):
         '''
         Initiate the core properties
         '''
@@ -64,8 +77,12 @@ class tax2vec:
         self.skip_transform = False
         self.indices_selected_features = None
         self.document_split_symbol = document_split_symbol
-        self.initial_terms = []  ## for personalized node ranking
-        self.possible_heuristics = ["closeness_centrality", "rarest_terms", "mutual_info", "pagerank"]
+        self.initial_terms = []  # for personalized node ranking
+        self.possible_heuristics = [
+            "closeness_centrality",
+            "rarest_terms",
+            "mutual_info",
+            "pagerank"]
         self.reversed_wmap = None
         self.doc_seqs = None
         self.knowledge_graph = knowledge_graph
@@ -78,7 +95,6 @@ class tax2vec:
         self.simple_clean = simple_clean
         self.hypernyms = hyp
         self.knowledge_graph_path = path
-
 
         if num_cpu == "all":
             self.num_cpu = mp.cpu_count()
@@ -102,24 +118,28 @@ class tax2vec:
         '''
         A simple fit method
         '''
-        train_sequences, tokenizer, mlen = prep.data_docs_to_matrix(text, mode=self.mode, simple_clean=self.simple_clean)  ## simple clean removes english stopwords -> this is very basic preprocessing.
+        train_sequences, tokenizer, mlen = prep.data_docs_to_matrix(
+            text, mode=self.mode, simple_clean=self.simple_clean)  # simple clean removes english stopwords -> this is very basic preprocessing.
         self.tokenizer = tokenizer
         dmap = tokenizer.__dict__['word_index']
         self.monitor("Constructing local taxonomy...")
         if self.knowledge_graph:
-            self.knowledge_graph_features(train_sequences, dmap, hyp=self.hypernyms, path=self.knowledge_graph_path)
+            self.knowledge_graph_features(
+                train_sequences,
+                dmap,
+                hyp=self.hypernyms,
+                path=self.knowledge_graph_path)
         else:
             self.wordnet_features(train_sequences, dmap)
 
     def disambiguation_synset(self, word, document, word_index=None):
-
         '''
         First split each multidocument and select most frequent hypernyms in terms of occurrence.
         '''
 
         if self.disambiguation_window is None:
 
-            ## take into account whole docs
+            # take into account whole docs
             docs = " ".join(document).split(self.document_split_symbol)
             hyps = []
             for doc in docs:
@@ -154,18 +174,18 @@ class tax2vec:
                 return None
 
     def document_kernel(self, vec, idx):
-
         '''
         A method to parse documents in parallel.
         '''
         if self.reversed_wmap:
-            document = [self.reversed_wmap[x] for x in vec.tolist() if x > 0 and x in self.reversed_wmap.keys()]
+            document = [self.reversed_wmap[x] for x in vec.tolist(
+            ) if x > 0 and x in self.reversed_wmap.keys()]
         else:
             document = vec.split()
         hypernyms = []
         local_graph = []
         initial_hypernyms = []
-        ## parallel document walk
+        # parallel document walk
         for ix, word in enumerate(document):
             if len(word) < 2:
                 continue
@@ -179,10 +199,11 @@ class tax2vec:
                     for en, x in enumerate(path):
                         if en > self.start_term_depth:
                             if parent is not None:
-                                ## add hypernyms to global taxonomy
+                                # add hypernyms to global taxonomy
                                 local_graph.append((parent.name(), x.name()))
 
-                                ## add parent, as well as current hypernym to the local tree.
+                                # add parent, as well as current hypernym to
+                                # the local tree.
                                 hypernyms.append(parent.name())
                                 hypernyms.append(x.name())
                                 parent = x
@@ -193,14 +214,15 @@ class tax2vec:
         return (initial_hypernyms, idx, hypernyms, local_graph)
 
     def wordnet_features(self, data, wmap=None):
-
         """
         Construct word wector maps and use graph-based properties to select relevant number of features..
         """
 
-        ## store sequences for further transformations
+        # store sequences for further transformations
         self.doc_seqs = data
-        self.monitor("Constructing semantic vectors of size: {}".format(self.max_features))
+        self.monitor(
+            "Constructing semantic vectors of size: {}".format(
+                self.max_features))
         if wmap:
             self.reversed_wmap = {v: k for k, v in wmap.items()}
 
@@ -215,7 +237,8 @@ class tax2vec:
         self.all_hypernyms = []
         self.doc_synsets = defaultdict(list)
         if self.parallel:
-            self.monitor("Processing {} documents in parallel batches..".format(len(self.doc_seqs)))
+            self.monitor("Processing {} documents in parallel batches..".format(
+                len(self.doc_seqs)))
             jobs = [(vec, idx) for idx, vec in enumerate(self.doc_seqs)]
             num_cpu = self.num_cpu
             with multiprocessing.Pool(processes=self.num_cpu) as pool:
@@ -234,7 +257,8 @@ class tax2vec:
                 if enx % 1000 == 0:
                     self.monitor("Processed {} documents..".format(enx))
                 if self.reversed_wmap:
-                    document = [self.reversed_wmap[x] for x in vec.tolist() if x > 0 and x in self.reversed_wmap.keys()]
+                    document = [self.reversed_wmap[x] for x in vec.tolist(
+                    ) if x > 0 and x in self.reversed_wmap.keys()]
                 else:
                     document = vec
                 hypernyms = []
@@ -275,7 +299,9 @@ class tax2vec:
 
         else:
             self.monitor(
-                "Please select one of the following heuristics: {}".format("\n".join(self.possible_heuristics)))
+                "Please select one of the following heuristics: {}".format(
+                    "\n".join(
+                        self.possible_heuristics)))
 
     def map_data_to_digraph(self, path):
         graph = nx.DiGraph()
@@ -319,7 +345,8 @@ class tax2vec:
         hypernyms = []
 
         if self.reversed_wmap:
-            document = [self.reversed_wmap[x] for x in vec.tolist() if x > 0 and x in self.reversed_wmap.keys()]
+            document = [self.reversed_wmap[x] for x in vec.tolist(
+            ) if x > 0 and x in self.reversed_wmap.keys()]
         else:
             document = vec
 
@@ -334,15 +361,16 @@ class tax2vec:
 
                 if hypernyms_count == 'all':  # add all hypernyms of given word
                     out = self.add_all_hypernyms(token)
-                elif type(hypernyms_count) is int:  # add just the best hypernym
+                elif isinstance(hypernyms_count, int):  # add just the best hypernym
                     out = self.add_best_n_hypernyms(token, hypernyms_count)
                 else:
-                    print("Enter either positive integer or 'all' as the parameter 'hyp'.")
+                    print(
+                        "Enter either positive integer or 'all' as the parameter 'hyp'.")
                     return
 
                 if out is not None:
                     hypernyms.extend(out)
-                    for h in hypernyms:
+                    for h in out:
                         local_graph.append((str(token), h))
 
         return initial_terms, idx, hypernyms, local_graph
@@ -364,17 +392,16 @@ class tax2vec:
         self.WN = nx.DiGraph()
 
         if path is None:
-            self.monitor("Please, enter a name of path to knowledge graph source")
+            self.monitor(
+                "Please, enter a name of path to knowledge graph source")
             return
         else:
             self.knowledge_base = self.map_data_to_digraph(path)
-            undir = self.knowledge_base.to_undirected()
-            n = nx.number_connected_components(undir)
-            print(n)
 
         if wmap:
             self.reversed_wmap = {v: k for k, v in wmap.items()}
         self.monitor("Looking up hypernyms using knowledge graph")
+
         for enx, vec in enumerate(self.doc_seqs):
             result = self.one_document_hypernyms(vec, enx, hyp)
             initial_terms, idx, hypernyms, graph = result
@@ -386,7 +413,6 @@ class tax2vec:
         self.choose_feature_selection_heuristic()
 
     def heuristic_pagerank_selection(self):
-
         '''
         Personalized PageRank for term prioretization -> what is relevant with respect to hypernym mappings?
         '''
@@ -412,7 +438,6 @@ class tax2vec:
                 break
 
     def heuristic_closeness(self):
-
         '''
         Closeness centrality method
         '''
@@ -426,7 +451,6 @@ class tax2vec:
                 break
 
     def heuristic_specificity(self):
-
         '''
         Simple term count-sort combination
         '''
@@ -434,60 +458,61 @@ class tax2vec:
         lot = [list(x) for x in self.all_hypernyms]
         flat_list = [item for sublist in lot for item in sublist]
         rarest_terms = Counter(flat_list)
-        self.semantic_candidates = [x[0] for x in
-                                    sorted(rarest_terms.items(), key=operator.itemgetter(1), reverse=False)][
-                                   0:self.max_features]
+        self.semantic_candidates = [x[0] for x in sorted(rarest_terms.items(
+        ), key=operator.itemgetter(1), reverse=False)][0:self.max_features]
         if self.hypernym_space is not None:
             try:
                 self.monitor("Saving hypernym distribution")
                 hyper_subs = np.array(list(rarest_terms.values()))
                 np.save(self.hypernym_space, hyper_subs)
-            except:
+            except BaseException:
                 self.monitor("Folder structure insufficient!")
 
     def feature_transform(self, matrix):
-
         '''
         Helper method for transformation of the target matrix given a set of features.
         '''
 
         if self.indices_selected_features is None:
-            raise ValueError("Semantic candidates not yet defined. Please, run the heuristic_mutual_info step first.")
+            raise ValueError(
+                "Semantic candidates not yet defined. Please, run the heuristic_mutual_info step first.")
         return matrix[:, self.indices_selected_features]
 
     def heuristic_mutual_info(self):
-
         '''
         Mutual information heuristic
         '''
 
-        self.semantic_candidates = list(
-            set([item for sublist in [list(x) for x in self.all_hypernyms] for item in sublist]))
+        self.semantic_candidates = list(set(
+            [item for sublist in [list(x) for x in self.all_hypernyms] for item in sublist]))
 
-        ## potential feature selection
+        # potential feature selection
         if self.targets is not None:
             tmp = self.transform()
             self.monitor("Finding the best scoring target..")
 
-            ## select optimal splitting target
+            # select optimal splitting target
             mutual_info_scores = []
-            ## transform to one-hot encoding if needed
+            # transform to one-hot encoding if needed
             if np.ndim(self.targets) == 1:
                 n = len(self.targets)
                 onehot = np.zeros((n, max(self.targets) + 1))
                 onehot[np.arange(n), self.targets] = 1
                 self.targets = onehot
             for j in range(self.targets.shape[1]):
-                mutual_info_tmp = mutual_info_classif(np.rint(tmp), self.targets[:, j])
+                mutual_info_tmp = mutual_info_classif(
+                    np.rint(tmp), self.targets[:, j])
                 mutual_info_scores.append(mutual_info_tmp)
             sum_scores = np.zeros(tmp.shape[1])
             for score in mutual_info_scores:
                 sum_scores += score
             sum_scores = sum_scores / self.targets.shape[1]
             if self.indices_selected_features is None:
-                ## take top n by score as candidates
-                self.indices_selected_features = sum_scores.argsort()[-self.max_features:]
-                self.top_mutual_information_scores = np.sort(sum_scores)[-self.max_features:]
+                # take top n by score as candidates
+                self.indices_selected_features = sum_scores.argsort(
+                )[-self.max_features:]
+                self.top_mutual_information_scores = np.sort(
+                    sum_scores)[-self.max_features:]
 
             if self.class_names is not None:
                 self.relevant_classes = []
@@ -495,24 +520,25 @@ class tax2vec:
                     ranks = {}
                     for enx, vec in enumerate(mutual_info_scores):
                         ranks[enx] = vec[el_idx]
-                    sorted_ranks = sorted(ranks.items(), key=operator.itemgetter(1), reverse=True)
+                    sorted_ranks = sorted(
+                        ranks.items(), key=operator.itemgetter(1), reverse=True)
                     sorted_outranks = []
                     for rank in sorted_ranks:
-                        sorted_outranks.append((self.class_names[rank[0]], rank[1]))
+                        sorted_outranks.append(
+                            (self.class_names[rank[0]], rank[1]))
 
-                    ## append whole array of priorities.
+                    # append whole array of priorities.
                     self.relevant_classes.append(sorted_outranks)
 
-            ## update the actual semantic candidates..
-            self.semantic_candidates = [j for e, j in enumerate(self.semantic_candidates) if
-                                        e in self.indices_selected_features]
+            # update the actual semantic candidates..
+            self.semantic_candidates = [j for e, j in enumerate(
+                self.semantic_candidates) if e in self.indices_selected_features]
 
             #            self.initial_transformation = True
             self.skip_transform = True
             self.transformed_matrix = self.feature_transform(tmp)
 
     def feature_kernel(self, ix):
-
         '''
         Paralel computation of doc-feature values
         '''
@@ -524,14 +550,14 @@ class tax2vec:
                 local = Counter(self.doc_synsets[ix])
                 lfreq = local[x]
                 lmax = local[max(local, key=local.get)]
-                lidf = len(self.all_hypernyms) / len([j for j in self.all_hypernyms if x in j])
-                ## average weighted tfidf
+                lidf = len(self.all_hypernyms) / \
+                    len([j for j in self.all_hypernyms if x in j])
+                # average weighted tfidf
                 weight = (0.5 + 0.5 * (lfreq / (lmax + 1))) * np.log(lidf)
                 pnts.append((idx, ix, weight))
         return pnts
 
     def transform(self, docs=None):
-
         '''
         The generic transform method.
         '''
@@ -540,7 +566,7 @@ class tax2vec:
             self.skip_transform = False
             return self.transformed_matrix
 
-        ## generate the semantic mappings
+        # generate the semantic mappings
         if docs is None:
             self.tmp_doc_seqs = self.doc_seqs
         else:
@@ -563,7 +589,11 @@ class tax2vec:
             num_cpu = self.num_cpu
             jobs = list(range(len(self.tmp_doc_seqs)))
             with multiprocessing.Pool(processes=self.num_cpu) as pool:
-                results = tqdm(pool.imap(self.feature_kernel, jobs), total=len(jobs))
+                results = tqdm(
+                    pool.imap(
+                        self.feature_kernel,
+                        jobs),
+                    total=len(jobs))
                 results = [x for y in results for x in y]
                 cs, rs, data = zip(*results)
         else:
@@ -571,16 +601,18 @@ class tax2vec:
                 local_hyps = set(self.doc_synsets[ix])
                 for idx, x in enumerate(self.semantic_candidates):
                     if x in local_hyps:
-                        ## compute weighted tfidf
+                        # compute weighted tfidf
                         local = Counter(self.doc_synsets[ix])
                         lfreq = local[x]
                         lmax = local[max(local, key=local.get)]
-                        lidf = len(self.all_hypernyms) / len([j for j in self.all_hypernyms if x in j])
-                        ## average weighted tfidf
-                        weight = (0.5 + 0.5 * (lfreq / (lmax + 1))) * np.log(lidf)
+                        lidf = len(self.all_hypernyms) / \
+                            len([j for j in self.all_hypernyms if x in j])
+                        # average weighted tfidf
+                        weight = (0.5 + 0.5 * (lfreq / (lmax + 1))) * \
+                            np.log(lidf)
                         cs.append(idx)
                         rs.append(ix)
-                        data.append(weight)  ## this can be arbitrary weight!
+                        data.append(weight)  # this can be arbitrary weight!
 
         assert len(rs) == len(cs)
         m = sps.csr_matrix((data, (rs, cs)), shape=(rows, cols))
@@ -590,7 +622,6 @@ class tax2vec:
             return m
 
     def fit_transform(self, text):
-
         '''
         The generic fit-transform combination.
         '''

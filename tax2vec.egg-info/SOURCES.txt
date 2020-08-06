@@ -16,7 +16,6 @@ datasets/bbc/train.tsv
 datasets/insults/dev.tsv
 datasets/insults/test.tsv
 datasets/insults/train.tsv
-dist/tax2vec-0.22.tar.gz
 examples/demo_classification.py
 examples/demo_classification_custom_features.py
 examples/demo_explain_corpus.py
