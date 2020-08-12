@@ -82,6 +82,7 @@ class tax2vec:
             "closeness_centrality",
             "rarest_terms",
             "mutual_info",
+            "betweenness_centrality",
             "pagerank"]
         self.reversed_wmap = None
         self.doc_seqs = None
@@ -287,7 +288,10 @@ class tax2vec:
         self.monitor("Selecting semantic terms..")
         if self.heuristic == "closeness_centrality":
             self.heuristic_closeness()
-
+            
+        if self.heuristic == "betweenness_centrality":
+            self.heuristic_betweenness()
+            
         elif self.heuristic == "rarest_terms":
             self.heuristic_specificity()
 
@@ -450,6 +454,19 @@ class tax2vec:
             else:
                 break
 
+    def heuristic_betweenness(self):
+        '''
+        Closeness centrality method
+        '''
+
+        eigC = nx.betweenness_centrality(self.WN)
+        self.semantic_candidates = []
+        for en, k in enumerate(sorted(eigC, key=eigC.get, reverse=False)):
+            if en < self.max_features:
+                self.semantic_candidates.append(k)
+            else:
+                break
+            
     def heuristic_specificity(self):
         '''
         Simple term count-sort combination

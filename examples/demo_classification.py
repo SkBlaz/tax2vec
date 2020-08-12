@@ -62,7 +62,7 @@ if __name__ == "__main__":
     import time
     start = time.time()
     output = []
-    for heuristic in ["closeness_centrality", "rarest_terms", "mutual_info", "pagerank"]:
+    for heuristic in ["betweenness_centrality","closeness_centrality", "rarest_terms", "mutual_info", "pagerank"]:
         for fn in [0, 5, 10, 15, 20, 25, 50, 100, 200, 500, 1000]:
             score = example_run(fn, heuristic=heuristic)
             output.append([fn, score, heuristic])
@@ -79,4 +79,3 @@ if __name__ == "__main__":
     # example_run(10)
     # print("50 semantic features")
     # example_run(50)
-

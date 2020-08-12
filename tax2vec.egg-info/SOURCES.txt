@@ -25,10 +25,8 @@ examples/demo_knowledge_graph.py
 examples/demo_simple.py
 examples/run_all_tests.sh
 tax2vec/__init__.py
-tax2vec/__init__.py~
 tax2vec/models.py
 tax2vec/preprocessing.py
-tax2vec/preprocessing.py~
 tax2vec.egg-info/PKG-INFO
 tax2vec.egg-info/SOURCES.txt
 tax2vec.egg-info/dependency_links.txt
