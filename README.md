@@ -66,7 +66,7 @@ test_text = ["When the European Communities (EC) came into being in 1958, the UK
 ## start_term_depth denotes how high in the taxonomy must a given feature be to be considered
 tax2vec_instance = t2v.tax2vec(max_features=10, num_cpu=8, heuristic="pagerank", disambiguation_window=2, start_term_depth=3) 
 
-## to obtain train feature one must fir and transfrorm
+## to obtain train feature one must fit and transfrorm
 semantic_features_train = tax2vec_instance.fit_transform(train_text)
 
 ## to obtain test features, simply transform
