@@ -5,7 +5,7 @@ Semantic space vectorization algorithm
 ## Short description
 
 Tax2vec is a simple data enrichment approach. Its main goal is to extract corpus-relevant information in form of new features, which can be used for learning.
-> Key idea: Inject semantic backgorund knowledge into raw textual data.
+> Key idea: Inject semantic background knowledge into raw textual data.
 ![Key idea](workflow.png)
 
 ## Getting Started
