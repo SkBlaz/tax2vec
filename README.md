@@ -4,8 +4,8 @@ Semantic space vectorization algorithm
 
 ## Short description
 
-Tax2vec is a simple data enrichment approach. Its main goal is to extract corpus-relevant information in form of new features, which can be used for learning.
-> Key idea: Inject semantic background knowledge into raw textual data.
+Tax2vec is a simple data enrichment approach. Its main goal is to extract corpus-relevant semantic information in the form of new features, directly useful for learning.
+> Key idea: Inject semantic background knowledge into existing textual data.
 ![Key idea](workflow.png)
 
 ## Getting Started
@@ -13,7 +13,7 @@ Below you shall find instructions for installation of tax2vec library.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them. Generic install:
+What things you need to install the software and how to install them follows next. Generic install:
 
 ```
 pip install -r requirements.txt
@@ -50,7 +50,7 @@ bash run_all_tests.sh
 ```
 ## A self contained example
 
-Assume you are given a blob of documents, and are asked to generate semantic features. The following examples starts from randomly selected Brexit Wikipedia article:
+Assume you are given a blob of documents, and are asked to generate semantic features. The following example starts from a randomly selected Brexit Wikipedia article:
 
 ```python
 ## simplest possible use
@@ -73,7 +73,7 @@ semantic_features_train = tax2vec_instance.fit_transform(train_text)
 semantic_features_test = tax2vec_instance.transform(test_text)
 assert semantic_features_train.shape[1] == semantic_features_test.shape[1]
 
-## what features are the most relevant?
+## which features are the most relevant?
 for a, b in zip(tax2vec_instance.semantic_candidates, tax2vec_instance.pagerank_scores):
     print("{} with score: {}".format(a, b))
 
@@ -103,7 +103,7 @@ import tax2vec as t2v
 from tax2vec.preprocessing import *
 ```
 
-Next, we load the corpus using in-built methods. Note that any tokenizer can be used for this!
+Next, we load the corpus using the in-built methods. Note that any tokenizer can be used for this!
 
 ```python
 
@@ -126,7 +126,7 @@ semantic_features_test = tax2vec_instance.transform(test_x)
 ```
 
 # Making features from knowledge graphs?
-(Beta feature, in serial mode only) It is also possible to obtain features from e.g., Microsoft Concept Graph via function knowledge_graph_features(). It uses SpaCy to find nouns in the sentence and then look up generalizations in the graph. To do this, we just need to pass argument *knowledge_graph=True* when e.g., using Microsoft Concept Graph. Also the path to the file with knowledge graph relations should be specified (parameter *path*). Parameter *hyp* specifies how many hypernyms from each relevant word from our text we should take in account. Example follows:
+(Beta feature) It is also possible to obtain features from e.g., Microsoft Concept Graph via function knowledge_graph_features() method. It uses SpaCy to find nouns in the sentence and then look up generalizations in the graph. To do this, we just need to pass argument *knowledge_graph=True* when e.g., using Microsoft Concept Graph. Also the path to the file with knowledge graph relations should be specified (parameter *path*). Parameter *hyp* specifies how many hypernyms from each relevant word from our text we should take in account. Example follows:
 
 ```python
 
@@ -145,7 +145,7 @@ semantic_features_test = tax2vec_instance.transform(test_x)
 
 ```
 
-The knowledge base is a text file with IsA relations in form: instance *is_a* concept. The lines below are from file which was created from the Microsoft Concept Graph. So on the left side is the query word and on the right are the hypernyms.
+The knowledge base is a text file with IsA relations in the form: instance *is_a* concept. The lines below are from file which was created from the Microsoft Concept Graph. So on the left side is the query word and on the right are the hypernyms.
 
 ```python
 ...
