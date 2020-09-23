@@ -18,9 +18,14 @@ What things you need to install the software and how to install them follows nex
 ```
 pip install -r requirements.txt
 ```
-And also:
+And also,
 ```
 conda install --yes --file requirements.txt
+```
+
+We've also prepared a conda env with all requirements, which can be initiated as:
+```
+conda env create -f environment.yml
 ```
 
 ### Installing
