@@ -9,6 +9,13 @@ import sys
 from setuptools import setup,find_packages
 from setuptools.extension import Extension
     
+def parse_requirements(file):
+    required_packages = []
+    with open(path.join(path.dirname(__file__), file)) as req_file:
+        for line in req_file:
+            required_packages.append(line.strip())
+    return required_packages
+
 setup(name='tax2vec',
       version='0.24',
       description="Semantic space vectorization algorithm",
@@ -18,6 +25,6 @@ setup(name='tax2vec',
       license='MIT',
       packages=find_packages(),
       zip_safe=False,
-      install_requires=['rdflib','numpy','networkx','scipy','sklearn'],
+      install_requires=parse_requirements("requirements.txt"),
       include_package_data=True)
 
