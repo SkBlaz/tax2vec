@@ -1,6 +1,7 @@
 # tax2vec
 
-Semantic space vectorization algorithm
+Semantic space vectorization algorithm, official repository of the paper:
+https://www.sciencedirect.com/science/article/pii/S0885230820300371
 
 ## Short description
 
