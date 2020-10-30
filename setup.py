@@ -1,20 +1,19 @@
 ## install the lib
 
-
 ## Py3plex installation file. Cython code for fa2 is the courtesy of Bhargav Chippada.
 ## https://github.com/bhargavchippada/forceatlas2
 
 from os import path
-import sys
-from setuptools import setup,find_packages
-from setuptools.extension import Extension
-    
+from setuptools import setup, find_packages
+
+
 def parse_requirements(file):
     required_packages = []
     with open(path.join(path.dirname(__file__), file)) as req_file:
         for line in req_file:
             required_packages.append(line.strip())
     return required_packages
+
 
 setup(name='tax2vec',
       version='0.24',
@@ -27,4 +26,3 @@ setup(name='tax2vec',
       zip_safe=False,
       install_requires=parse_requirements("requirements.txt"),
       include_package_data=True)
-

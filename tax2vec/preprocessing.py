@@ -1,11 +1,8 @@
-
 # routines for text preprocessing!
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer, TfidfTransformer
-from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import MultiLabelBinarizer
-from scipy.sparse import hstack
 import gzip
 import tensorflow as tf
 from sklearn.preprocessing import LabelEncoder
@@ -14,7 +11,6 @@ from sklearn import preprocessing
 import nltk
 import numpy as np
 import pandas as pd
-from nltk import word_tokenize
 from nltk.corpus import stopwords
 import re
 import string
@@ -22,8 +18,10 @@ from itertools import groupby
 try:
     from nltk.tag import PerceptronTagger
 except BaseException:
+
     def PerceptronTagger():
         return 0
+
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import FeatureUnion
@@ -76,6 +74,7 @@ def remove_url(text, replace_token):
 #     text = tagger.tag_sents(tokens)
 #     return " ".join(tag for sent in text for word, tag in sent)
 
+
 def simplify_tag(t):
     if "+" in t:
         return t[t.index("+") + 1:]
@@ -108,6 +107,7 @@ def countCharacterFlooding(text):
             cnt += 1
     return cnt
 
+
 # count words in tweet that are in a specific word list and return frequency
 
 
@@ -121,6 +121,7 @@ def countWords(wordList, text):
         return 0
     return cnt / length
 
+
 # count specific characters
 
 
@@ -132,6 +133,7 @@ def count_patterns(text, list):
     if length == 0:
         return 0
     return cnt / length
+
 
 # get sentiment according to emojis
 
@@ -156,8 +158,8 @@ def count_pos(pos_sequence, pos_list):
 
 
 def get_affix(text):
-    return " ".join([word[-4:] if len(word) >=
-                     4 else word for word in text.split()])
+    return " ".join(
+        [word[-4:] if len(word) >= 4 else word for word in text.split()])
 
 
 def affix_punct(text):
@@ -197,12 +199,9 @@ class digit_col(BaseEstimator, TransformerMixin):
 
     def transform(self, hd_searches):
         d_col_drops = [
-            'text',
-            'no_punctuation',
-            'no_stopwords',
-            'text_clean',
-            'affixes',
-            'affix_punct']
+            'text', 'no_punctuation', 'no_stopwords', 'text_clean', 'affixes',
+            'affix_punct'
+        ]
         hd_searches = hd_searches.drop(d_col_drops, axis=1).values
         scaler = preprocessing.MinMaxScaler().fit(hd_searches)
         return scaler.transform(hd_searches)
@@ -223,7 +222,7 @@ def build_dataframe(data_docs):
     df_data['text_clean'] = df_data['text_clean'].map(
         lambda x: remove_mentions(x, ''))
 
-#    df_data['pos_tag'] = df_data['text_clean'].map(lambda x: tag(perceptron_tagger, x, sent_tokenizer))
+    #    df_data['pos_tag'] = df_data['text_clean'].map(lambda x: tag(perceptron_tagger, x, sent_tokenizer))
     df_data['no_punctuation'] = df_data['text_clean'].map(
         lambda x: remove_punctuation(x))
     df_data['no_stopwords'] = df_data['no_punctuation'].map(
@@ -244,36 +243,31 @@ def build_dataframe(data_docs):
     return df_data
 
 
-def data_docs_to_matrix(
-        data_docs,
-        mode="count",
-        max_features=10000,
-        ngram_range=(
-            2,
-            6),
-        simple_clean=False):
+def data_docs_to_matrix(data_docs,
+                        mode="count",
+                        max_features=10000,
+                        ngram_range=(2, 6),
+                        simple_clean=False):
 
     if simple_clean:
         data_docs = [remove_stopwords_and_articles(x) for x in data_docs]
 
     if mode == "matrix_word":
-        tokenizer = TfidfVectorizer(
-            stop_words="english",
-            strip_accents="ascii",
-            analyzer="word",
-            max_features=max_features,
-            ngram_range=ngram_range)
+        tokenizer = TfidfVectorizer(stop_words="english",
+                                    strip_accents="ascii",
+                                    analyzer="word",
+                                    max_features=max_features,
+                                    ngram_range=ngram_range)
         tokenizer = tokenizer.fit(data_docs)
         encoded_docs = tokenizer.transform(data_docs)
         return (encoded_docs, tokenizer, None)
 
     if mode == "matrix_char":
-        tokenizer = TfidfVectorizer(
-            stop_words="english",
-            strip_accents="ascii",
-            analyzer="char",
-            max_features=max_features,
-            ngram_range=ngram_range)
+        tokenizer = TfidfVectorizer(stop_words="english",
+                                    strip_accents="ascii",
+                                    analyzer="char",
+                                    max_features=max_features,
+                                    ngram_range=ngram_range)
         tokenizer = tokenizer.fit(data_docs)
         encoded_docs = tokenizer.transform(data_docs)
         return (encoded_docs, tokenizer, None)
@@ -281,71 +275,66 @@ def data_docs_to_matrix(
     if mode == "matrix_pan":
         df_data = build_dataframe(data_docs)
 
-        tfidf_unigram = TfidfVectorizer(
-            ngram_range=(
-                1,
-                1),
-            sublinear_tf=True,
-            min_df=10,
-            max_df=0.8)
-        tfidf_bigram = TfidfVectorizer(
-            ngram_range=(
-                2,
-                2),
-            sublinear_tf=False,
-            min_df=20,
-            max_df=0.5)
+        tfidf_unigram = TfidfVectorizer(ngram_range=(1, 1),
+                                        sublinear_tf=True,
+                                        min_df=10,
+                                        max_df=0.8)
+        tfidf_bigram = TfidfVectorizer(ngram_range=(2, 2),
+                                       sublinear_tf=False,
+                                       min_df=20,
+                                       max_df=0.5)
         #tfidf_pos = TfidfVectorizer(ngram_range=(2, 2), sublinear_tf=True, min_df=0.1, max_df=0.6, lowercase=False)
-        character_vectorizer = CountVectorizer(
-            analyzer='char_wb', ngram_range=(
-                4, 4), lowercase=False, min_df=4, max_df=0.8)
-        tfidf_ngram = TfidfVectorizer(
-            ngram_range=(
-                1,
-                1),
-            sublinear_tf=True,
-            min_df=0.1,
-            max_df=0.8)
+        character_vectorizer = CountVectorizer(analyzer='char_wb',
+                                               ngram_range=(4, 4),
+                                               lowercase=False,
+                                               min_df=4,
+                                               max_df=0.8)
+        tfidf_ngram = TfidfVectorizer(ngram_range=(1, 1),
+                                      sublinear_tf=True,
+                                      min_df=0.1,
+                                      max_df=0.8)
         tfidf_transformer = TfidfTransformer(sublinear_tf=True)
-        tfidf_affix_punct = TfidfVectorizer(
-            ngram_range=(
-                1,
-                1),
-            sublinear_tf=True,
-            min_df=0.1,
-            max_df=0.8,
-            tokenizer=affix_punct_tokenize)
+        tfidf_affix_punct = TfidfVectorizer(ngram_range=(1, 1),
+                                            sublinear_tf=True,
+                                            min_df=0.1,
+                                            max_df=0.8,
+                                            tokenizer=affix_punct_tokenize)
 
-        features = [('cst', digit_col()),
-                    ('unigram', pipeline.Pipeline(
-                        [('s1', text_col(key='no_stopwords')), ('tfidf_unigram', tfidf_unigram)])),
-                    ('bigram', pipeline.Pipeline(
-                        [('s2', text_col(key='no_punctuation')), ('tfidf_bigram', tfidf_bigram)])),
-                    #                   ('tag', pipeline.Pipeline([('s4', text_col(key='pos_tag')), ('tfidf_pos', tfidf_pos)])),
-                    ('character', pipeline.Pipeline(
-                        [('s5', text_col(key='text_clean')), ('character_vectorizer', character_vectorizer),
-                         ('tfidf_character', tfidf_transformer)])),
-                    ('affixes', pipeline.Pipeline(
-                        [('s5', text_col(key='affixes')), ('tfidf_ngram', tfidf_ngram)])),
-                    ('affix_punct', pipeline.Pipeline(
-                        [('s5', text_col(key='affix_punct')), ('tfidf_affix_punct', tfidf_affix_punct)])),
-                    ]
-        weights = {'cst': 0.3,
-                   'unigram': 0.8,
-                   'bigram': 0.1,
-                   #                 'tag': 0.2,
-                   'character': 0.8,
-                   'affixes': 0.4,
-                   'affix_punct': 0.1,
-                   }
+        features = [
+            ('cst', digit_col()),
+            ('unigram',
+             pipeline.Pipeline([('s1', text_col(key='no_stopwords')),
+                                ('tfidf_unigram', tfidf_unigram)])),
+            ('bigram',
+             pipeline.Pipeline([('s2', text_col(key='no_punctuation')),
+                                ('tfidf_bigram', tfidf_bigram)])),
+            #                   ('tag', pipeline.Pipeline([('s4', text_col(key='pos_tag')), ('tfidf_pos', tfidf_pos)])),
+            ('character',
+             pipeline.Pipeline([('s5', text_col(key='text_clean')),
+                                ('character_vectorizer', character_vectorizer),
+                                ('tfidf_character', tfidf_transformer)])),
+            ('affixes',
+             pipeline.Pipeline([('s5', text_col(key='affixes')),
+                                ('tfidf_ngram', tfidf_ngram)])),
+            ('affix_punct',
+             pipeline.Pipeline([('s5', text_col(key='affix_punct')),
+                                ('tfidf_affix_punct', tfidf_affix_punct)])),
+        ]
+        weights = {
+            'cst': 0.3,
+            'unigram': 0.8,
+            'bigram': 0.1,
+            #                 'tag': 0.2,
+            'character': 0.8,
+            'affixes': 0.4,
+            'affix_punct': 0.1,
+        }
 
-        matrix = pipeline.Pipeline([
-            ('union', FeatureUnion(
-                transformer_list=features,
-                transformer_weights=weights,
-                n_jobs=1
-            )),
-            ('scale', Normalizer())])
+        matrix = pipeline.Pipeline([('union',
+                                     FeatureUnion(transformer_list=features,
+                                                  transformer_weights=weights,
+                                                  n_jobs=1)),
+                                    ('scale', Normalizer())])
 
         tokenizer = matrix.fit(df_data)
         print(df_data.shape, df_data.columns)
@@ -411,10 +400,11 @@ def check_requirements():
 
 def generate_train_test_split(trainfile, max_docs=10):
 
-    labels_train, dcorp_train, multilabel = read_csv_gz(
-        trainfile, max_docs=max_docs)
-    labels_test, dcorp_test, multilabel = read_csv_gz(
-        trainfile.replace("train", "test"), max_docs=max_docs)
+    labels_train, dcorp_train, multilabel = read_csv_gz(trainfile,
+                                                        max_docs=max_docs)
+    labels_test, dcorp_test, multilabel = read_csv_gz(trainfile.replace(
+        "train", "test"),
+                                                      max_docs=max_docs)
 
     labels = labels_train + labels_test
     onehot_encoder = OneHotEncoder(sparse=False, categories="auto")
@@ -452,8 +442,8 @@ def read_csv_gz(dfile, max_docs=10):
                         labels.append(label)
 
                     # from 1 on are the documents
-                    docs = " MERGERTAG ".join(
-                        ",".join(splits[1:]).split("|||")[0:max_docs])
+                    docs = " MERGERTAG ".join(",".join(
+                        splits[1:]).split("|||")[0:max_docs])
                     dcorp.append(docs)
 
     return (labels, dcorp, multilabel)
@@ -479,10 +469,9 @@ def generate_corpus(dfile, max_docs=10):
 def split_generator(matrix, corpus, labels, num_splits=3, test=0.1):
 
     # generate stratified splits..
-    sss = StratifiedShuffleSplit(
-        n_splits=num_splits,
-        test_size=test,
-        random_state=0)
+    sss = StratifiedShuffleSplit(n_splits=num_splits,
+                                 test_size=test,
+                                 random_state=0)
     for train_index, test_index in sss.split(matrix, labels):
         train_x = [corpus[i] for i in train_index]
         test_x = [corpus[i] for i in test_index]

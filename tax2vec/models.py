@@ -1,7 +1,6 @@
 # some simple models
 
 from sklearn import svm
-from sklearn.svm import LinearSVC
 from sklearn.metrics import f1_score
 import numpy as np
 
@@ -16,8 +15,8 @@ try:
 except BaseException:
     ELU = tf.keras.backend.elu
 
-
 # from SOTAs.models.attn_lstm_hierarchical import *
+
 
 def linear_SVM(train_x, test_x, train_y, test_y, cparam=1):
     new_train_y = []
@@ -60,14 +59,13 @@ def nn_batch_generator(X_data, y_data, batch_size):
             counter = 0
 
 
-def simple_dnn(
-        train_x,
-        test_x,
-        train_y,
-        test_y,
-        dnn_setting="1000,500,100",
-        batch_size=10,
-        epochs=10):
+def simple_dnn(train_x,
+               test_x,
+               train_y,
+               test_y,
+               dnn_setting="1000,500,100",
+               batch_size=10,
+               epochs=10):
     train_x = train_x.tocsr()
     test_x = test_x.tocsr()
     if isinstance(train_y, list):
@@ -84,12 +82,9 @@ def simple_dnn(
     # Adds a densely-connected layer with 64 units to the model:
     layer_sizes = [int(x) for x in dnn_setting.split(",")]
     model.add(
-        keras.layers.Dense(
-            layer_sizes[0],
-            activation='relu',
-            input_shape=(
-                train_x.shape[1],
-            )))
+        keras.layers.Dense(layer_sizes[0],
+                           activation='relu',
+                           input_shape=(train_x.shape[1], )))
 
     # Add another:
     model.add(keras.layers.Dropout(0.3))
@@ -111,7 +106,9 @@ def simple_dnn(
     for j in range(epochs):
         model.fit_generator(generator=batchgen,
                             use_multiprocessing=False,
-                            workers=1, verbose=1, steps_per_epoch=1)
+                            workers=1,
+                            verbose=1,
+                            steps_per_epoch=1)
 
     mask = np.zeros((test_y.shape[0], test_y.shape[1]))
     preds = model.predict(test_x)
@@ -124,26 +121,22 @@ def simple_dnn(
     return copt
 
 
-def SRNA(
-        train_features,
-        test_features,
-        train_y,
-        test_y,
-        maxlen=0,
-        epoch_num=5):
+def SRNA(train_features,
+         test_features,
+         train_y,
+         test_y,
+         maxlen=0,
+         epoch_num=5):
     # process data
     x_train, semantic_train = train_features
     x_test, semantic_test = test_features
     labels_train = train_y
-    labels_test = test_y
 
     # set parameters
     max_features = 120000
-    semantic_embedding_dims = 100
     batch_size = 48
     embedding_dims = 300  # int(maxlen/2)
     filters = embedding_dims
-    kernel_size = 5
     hidden_dims = filters
     epochs = epoch_num
 
@@ -154,7 +147,7 @@ def SRNA(
         x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
 
     # a hybrid model with two inputs!
-    input1 = tf.keras.layers.Input(shape=(x_train.shape[1],))
+    input1 = tf.keras.layers.Input(shape=(x_train.shape[1], ))
     e1 = tf.keras.layers.Embedding(max_features, embedding_dims)(input1)
     d1 = tf.keras.layers.Dropout(0.5)(e1)
     #        c1 = tf.keras.layers.Conv1D(filters,
@@ -163,17 +156,16 @@ def SRNA(
     #                    activation='relu',
     #                    strides=1)(d1)
     c0 = tf.keras.layers.Bidirectional(
-        tf.keras.layers.LSTM(
-            300,
-            return_sequences=False,
-            dropout=0.25,
-            recurrent_dropout=0.25,
-            activation='softmax'))(d1)
+        tf.keras.layers.LSTM(300,
+                             return_sequences=False,
+                             dropout=0.25,
+                             recurrent_dropout=0.25,
+                             activation='softmax'))(d1)
     #        gp1 = tf.keras.layers.GlobalMaxPooling1D()(c1)
     de1 = tf.keras.layers.Dense(hidden_dims)(c0)
     d1_1 = tf.keras.layers.Dropout(0.3)(de1)
 
-    input2 = tf.keras.layers.Input(shape=(semantic_shape,))
+    input2 = tf.keras.layers.Input(shape=(semantic_shape, ))
     # activation_1 = ELU()(e2_2)
     d2_1 = tf.keras.layers.Dense(semantic_shape_hidden)(input2)
     drop_2 = tf.keras.layers.Dropout(0.2)(d2_1)
@@ -184,9 +176,8 @@ def SRNA(
     dp_1 = tf.keras.layers.Dropout(0.3)(mix1)
     da_2 = ELU()(dp_1)
     mix2 = tf.keras.layers.Dense(50)(da_2)
-    out = tf.keras.layers.Dense(
-        labels_train.shape[1],
-        activation="sigmoid")(mix2)
+    out = tf.keras.layers.Dense(labels_train.shape[1],
+                                activation="sigmoid")(mix2)
     model = tf.keras.models.Model(inputs=[input1, input2], outputs=out)
 
     model.compile(loss='binary_crossentropy',
@@ -198,7 +189,8 @@ def SRNA(
 
     print(model.summary())
 
-    model.fit([x_train, semantic_train], labels_train,
+    model.fit([x_train, semantic_train],
+              labels_train,
               batch_size=batch_size,
               epochs=epochs)
 
@@ -210,6 +202,7 @@ def SRNA(
     copt = f1_score(test_y, labels, average='micro')
     print("Current result {}".format(copt))
     return copt
+
 
 # def
 # hierarchical_attention(train_features,test_features,train_y,test_y,tokenizer,parameter_dict=None):

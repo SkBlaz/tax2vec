@@ -1,7 +1,6 @@
 ##############################
 # tax2vec --- Blaz Skrlj 2019
 ##############################
-import time
 
 try:
     from tqdm import tqdm
@@ -9,10 +8,8 @@ try:
     pbar = True
 except BaseException:
     pbar = False
-    pass
 import multiprocessing
 from collections import defaultdict
-import pickle
 import numpy as np
 
 try:
@@ -23,15 +20,10 @@ except Exception as es:
     print(es)
 
 from nltk.wsd import lesk
-import itertools
 import multiprocessing as mp
-from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import mutual_info_classif
-from sklearn import preprocessing
-from nltk.corpus import wordnet as wn
 import networkx as nx
 from collections import Counter
-import itertools
 import operator
 import scipy.sparse as sps
 import logging
@@ -39,29 +31,27 @@ import spacy
 import re
 import tax2vec.preprocessing as prep
 
-logging.basicConfig(
-    format='%(asctime)s - %(message)s',
-    datefmt='%d-%b-%y %H:%M:%S')
+logging.basicConfig(format='%(asctime)s - %(message)s',
+                    datefmt='%d-%b-%y %H:%M:%S')
 logging.getLogger().setLevel(logging.INFO)
 
 
 class tax2vec:
-    def __init__(
-            self,
-            max_features=100,
-            disambiguation_window=3,
-            document_split_symbol="MERGERTAG",
-            heuristic="mutual_info",
-            num_cpu="all",
-            hypernym_distribution="./hypernym_space/dist1.npy",
-            targets=None,
-            class_names=None,
-            start_term_depth=0,
-            knowledge_graph=False,
-            mode="index_word",
-            simple_clean=False,
-            hyp='all',
-            path=None):
+    def __init__(self,
+                 max_features=100,
+                 disambiguation_window=3,
+                 document_split_symbol="MERGERTAG",
+                 heuristic="mutual_info",
+                 num_cpu="all",
+                 hypernym_distribution="./hypernym_space/dist1.npy",
+                 targets=None,
+                 class_names=None,
+                 start_term_depth=0,
+                 knowledge_graph=False,
+                 mode="index_word",
+                 simple_clean=False,
+                 hyp='all',
+                 path=None):
         '''
         Initiate the core properties
         '''
@@ -79,11 +69,9 @@ class tax2vec:
         self.document_split_symbol = document_split_symbol
         self.initial_terms = []  # for personalized node ranking
         self.possible_heuristics = [
-            "closeness_centrality",
-            "rarest_terms",
-            "mutual_info",
-            "betweenness_centrality",
-            "pagerank"]
+            "closeness_centrality", "rarest_terms", "mutual_info",
+            "betweenness_centrality", "pagerank"
+        ]
         self.reversed_wmap = None
         self.doc_seqs = None
         self.knowledge_graph = knowledge_graph
@@ -120,16 +108,16 @@ class tax2vec:
         A simple fit method
         '''
         train_sequences, tokenizer, mlen = prep.data_docs_to_matrix(
-            text, mode=self.mode, simple_clean=self.simple_clean)  # simple clean removes english stopwords -> this is very basic preprocessing.
+            text, mode=self.mode, simple_clean=self.simple_clean
+        )  # simple clean removes english stopwords -> this is very basic preprocessing.
         self.tokenizer = tokenizer
         dmap = tokenizer.__dict__['word_index']
         self.monitor("Constructing local taxonomy...")
         if self.knowledge_graph:
-            self.knowledge_graph_features(
-                train_sequences,
-                dmap,
-                hyp=self.hypernyms,
-                path=self.knowledge_graph_path)
+            self.knowledge_graph_features(train_sequences,
+                                          dmap,
+                                          hyp=self.hypernyms,
+                                          path=self.knowledge_graph_path)
         else:
             self.wordnet_features(train_sequences, dmap)
 
@@ -149,7 +137,7 @@ class tax2vec:
                 if hypernym is not None:
                     hyps.append(hypernym)
             if len(hyps) > 0:
-                cntr = Counter(hyps)
+                Counter(hyps)
                 return max(set(hyps), key=hyps.count)
             else:
                 return None
@@ -179,8 +167,10 @@ class tax2vec:
         A method to parse documents in parallel.
         '''
         if self.reversed_wmap:
-            document = [self.reversed_wmap[x] for x in vec.tolist(
-            ) if x > 0 and x in self.reversed_wmap.keys()]
+            document = [
+                self.reversed_wmap[x] for x in vec.tolist()
+                if x > 0 and x in self.reversed_wmap.keys()
+            ]
         else:
             document = vec.split()
         hypernyms = []
@@ -194,7 +184,6 @@ class tax2vec:
             if wsyn is not None:
                 initial_hypernyms.append(wsyn.name())
                 paths = wsyn.hypernym_paths()
-                common_terms = []
                 for path in paths:
                     parent = None
                     for en, x in enumerate(path):
@@ -221,31 +210,25 @@ class tax2vec:
 
         # store sequences for further transformations
         self.doc_seqs = data
-        self.monitor(
-            "Constructing semantic vectors of size: {}".format(
-                self.max_features))
+        self.monitor("Constructing semantic vectors of size: {}".format(
+            self.max_features))
         if wmap:
             self.reversed_wmap = {v: k for k, v in wmap.items()}
 
-        flist = []
         if wmap:
-            tw = len(wmap.keys())
-        ldct = {}
-        cnts = {}
-        processed = 0
+            len(wmap.keys())
         self.WN = nx.DiGraph()
-        total_wordset = {}
         self.all_hypernyms = []
         self.doc_synsets = defaultdict(list)
         if self.parallel:
-            self.monitor("Processing {} documents in parallel batches..".format(
-                len(self.doc_seqs)))
+            self.monitor(
+                "Processing {} documents in parallel batches..".format(
+                    len(self.doc_seqs)))
             jobs = [(vec, idx) for idx, vec in enumerate(self.doc_seqs)]
-            num_cpu = self.num_cpu
+            self.num_cpu
             with multiprocessing.Pool(processes=self.num_cpu) as pool:
                 results = pool.starmap(self.document_kernel, jobs)
                 self.monitor("Constructing local taxonomy..")
-                all_edges = []
 
                 for result in tqdm(results):
                     initial_hyp, idx, hypernyms, graph = result
@@ -258,8 +241,10 @@ class tax2vec:
                 if enx % 1000 == 0:
                     self.monitor("Processed {} documents..".format(enx))
                 if self.reversed_wmap:
-                    document = [self.reversed_wmap[x] for x in vec.tolist(
-                    ) if x > 0 and x in self.reversed_wmap.keys()]
+                    document = [
+                        self.reversed_wmap[x] for x in vec.tolist()
+                        if x > 0 and x in self.reversed_wmap.keys()
+                    ]
                 else:
                     document = vec
                 hypernyms = []
@@ -268,7 +253,6 @@ class tax2vec:
                     self.initial_terms.append(wsyn)
                     if wsyn is not None:
                         paths = wsyn.hypernym_paths()
-                        common_terms = []
                         for path in paths:
                             parent = None
                             for x in path:
@@ -288,10 +272,10 @@ class tax2vec:
         self.monitor("Selecting semantic terms..")
         if self.heuristic == "closeness_centrality":
             self.heuristic_closeness()
-            
+
         if self.heuristic == "betweenness_centrality":
             self.heuristic_betweenness()
-            
+
         elif self.heuristic == "rarest_terms":
             self.heuristic_specificity()
 
@@ -304,8 +288,7 @@ class tax2vec:
         else:
             self.monitor(
                 "Please select one of the following heuristics: {}".format(
-                    "\n".join(
-                        self.possible_heuristics)))
+                    "\n".join(self.possible_heuristics)))
 
     def map_data_to_digraph(self, path):
         graph = nx.DiGraph()
@@ -336,7 +319,7 @@ class tax2vec:
                 assert n > 0
                 i = 0
                 for u, v in edges:
-                    if i == n:    # edges are ordered, so we can choose the first one
+                    if i == n:  # edges are ordered, so we can choose the first one
                         break
                     hypernyms.append(v)
                     i += 1
@@ -349,8 +332,10 @@ class tax2vec:
         hypernyms = []
 
         if self.reversed_wmap:
-            document = [self.reversed_wmap[x] for x in vec.tolist(
-            ) if x > 0 and x in self.reversed_wmap.keys()]
+            document = [
+                self.reversed_wmap[x] for x in vec.tolist()
+                if x > 0 and x in self.reversed_wmap.keys()
+            ]
         else:
             document = vec
 
@@ -365,11 +350,13 @@ class tax2vec:
 
                 if hypernyms_count == 'all':  # add all hypernyms of given word
                     out = self.add_all_hypernyms(token)
-                elif isinstance(hypernyms_count, int):  # add just the best hypernym
+                elif isinstance(hypernyms_count,
+                                int):  # add just the best hypernym
                     out = self.add_best_n_hypernyms(token, hypernyms_count)
                 else:
                     print(
-                        "Enter either positive integer or 'all' as the parameter 'hyp'.")
+                        "Enter either positive integer or 'all' as the parameter 'hyp'."
+                    )
                     return
 
                 if out is not None:
@@ -466,7 +453,7 @@ class tax2vec:
                 self.semantic_candidates.append(k)
             else:
                 break
-            
+
     def heuristic_specificity(self):
         '''
         Simple term count-sort combination
@@ -475,8 +462,11 @@ class tax2vec:
         lot = [list(x) for x in self.all_hypernyms]
         flat_list = [item for sublist in lot for item in sublist]
         rarest_terms = Counter(flat_list)
-        self.semantic_candidates = [x[0] for x in sorted(rarest_terms.items(
-        ), key=operator.itemgetter(1), reverse=False)][0:self.max_features]
+        self.semantic_candidates = [
+            x[0] for x in sorted(rarest_terms.items(),
+                                 key=operator.itemgetter(1),
+                                 reverse=False)
+        ][0:self.max_features]
         if self.hypernym_space is not None:
             try:
                 self.monitor("Saving hypernym distribution")
@@ -492,7 +482,8 @@ class tax2vec:
 
         if self.indices_selected_features is None:
             raise ValueError(
-                "Semantic candidates not yet defined. Please, run the heuristic_mutual_info step first.")
+                "Semantic candidates not yet defined. Please, run the heuristic_mutual_info step first."
+            )
         return matrix[:, self.indices_selected_features]
 
     def heuristic_mutual_info(self):
@@ -500,8 +491,11 @@ class tax2vec:
         Mutual information heuristic
         '''
 
-        self.semantic_candidates = list(set(
-            [item for sublist in [list(x) for x in self.all_hypernyms] for item in sublist]))
+        self.semantic_candidates = list(
+            set([
+                item for sublist in [list(x) for x in self.all_hypernyms]
+                for item in sublist
+            ]))
 
         # potential feature selection
         if self.targets is not None:
@@ -517,8 +511,8 @@ class tax2vec:
                 onehot[np.arange(n), self.targets] = 1
                 self.targets = onehot
             for j in range(self.targets.shape[1]):
-                mutual_info_tmp = mutual_info_classif(
-                    np.rint(tmp), self.targets[:, j])
+                mutual_info_tmp = mutual_info_classif(np.rint(tmp),
+                                                      self.targets[:, j])
                 mutual_info_scores.append(mutual_info_tmp)
             sum_scores = np.zeros(tmp.shape[1])
             for score in mutual_info_scores:
@@ -537,8 +531,9 @@ class tax2vec:
                     ranks = {}
                     for enx, vec in enumerate(mutual_info_scores):
                         ranks[enx] = vec[el_idx]
-                    sorted_ranks = sorted(
-                        ranks.items(), key=operator.itemgetter(1), reverse=True)
+                    sorted_ranks = sorted(ranks.items(),
+                                          key=operator.itemgetter(1),
+                                          reverse=True)
                     sorted_outranks = []
                     for rank in sorted_ranks:
                         sorted_outranks.append(
@@ -548,8 +543,10 @@ class tax2vec:
                     self.relevant_classes.append(sorted_outranks)
 
             # update the actual semantic candidates..
-            self.semantic_candidates = [j for e, j in enumerate(
-                self.semantic_candidates) if e in self.indices_selected_features]
+            self.semantic_candidates = [
+                j for e, j in enumerate(self.semantic_candidates)
+                if e in self.indices_selected_features
+            ]
 
             #            self.initial_transformation = True
             self.skip_transform = True
@@ -603,14 +600,11 @@ class tax2vec:
         data = []
 
         if self.parallel:
-            num_cpu = self.num_cpu
+            self.num_cpu
             jobs = list(range(len(self.tmp_doc_seqs)))
             with multiprocessing.Pool(processes=self.num_cpu) as pool:
-                results = tqdm(
-                    pool.imap(
-                        self.feature_kernel,
-                        jobs),
-                    total=len(jobs))
+                results = tqdm(pool.imap(self.feature_kernel, jobs),
+                               total=len(jobs))
                 results = [x for y in results for x in y]
                 cs, rs, data = zip(*results)
         else:
