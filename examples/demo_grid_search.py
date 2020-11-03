@@ -1,5 +1,5 @@
 import tax2vec as t2v
-from tax2vec.preprocessing import *
+from tax2vec.preprocessing import data_docs_to_matrix, hstack
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import GridSearchCV

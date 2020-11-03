@@ -3,6 +3,7 @@ LICENSE.md
 MANIFEST.in
 README.md
 benchmark.png
+environment.yml
 requirements.txt
 setup.py
 workflow.png
@@ -33,5 +34,3 @@ tax2vec.egg-info/dependency_links.txt
 tax2vec.egg-info/not-zip-safe
 tax2vec.egg-info/requires.txt
 tax2vec.egg-info/top_level.txt
-tax2vec/__pycache__/__init__.cpython-36.pyc
-tax2vec/__pycache__/preprocessing.cpython-36.pyc

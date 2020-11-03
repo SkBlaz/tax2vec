@@ -1,7 +1,7 @@
 ## how to use tax2vec for xploratory tasks?
 
 ## a very si-mple example
-from tax2vec.preprocessing import *
+from tax2vec.preprocessing import pd
 import tax2vec as t2v
 import numpy as np
 from sklearn.model_selection import train_test_split

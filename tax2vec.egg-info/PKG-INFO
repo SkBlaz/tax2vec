@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: tax2vec
-Version: 0.24
+Version: 0.25
 Summary: Semantic space vectorization algorithm
 Home-page: http://github.com/skblaz/tax2vec
 Author: Blaž Škrlj

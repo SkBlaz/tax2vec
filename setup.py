@@ -16,7 +16,7 @@ def parse_requirements(file):
 
 
 setup(name='tax2vec',
-      version='0.24',
+      version='0.25',
       description="Semantic space vectorization algorithm",
       url='http://github.com/skblaz/tax2vec',
       author='Blaž Škrlj',

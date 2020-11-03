@@ -1,5 +1,11 @@
-rdflib
-numpy
-networkx
-scipy
-sklearn
+numpy>=0.8
+scipy>=1.1.0
+nltk>=2.2.0
+networkx>=2.0
+cython>=0.20
+scikit-learn>=0.20
+tqdm>0.0
+tensorflow>=1.12.0
+pandas>=0.23.4
+spacy>=2.3.0
+matplotlib
