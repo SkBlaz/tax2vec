@@ -1,6 +1,5 @@
 CONTRIBUTING.md
 LICENSE.md
-MANIFEST.in
 README.md
 benchmark.png
 environment.yml

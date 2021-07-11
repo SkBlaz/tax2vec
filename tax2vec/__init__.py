@@ -38,25 +38,27 @@ logging.getLogger().setLevel(logging.INFO)
 
 class tax2vec:
     def __init__(self,
-                 max_features=100,
-                 disambiguation_window=3,
-                 document_split_symbol="MERGERTAG",
-                 heuristic="mutual_info",
-                 num_cpu="all",
-                 hypernym_distribution="./hypernym_space/dist1.npy",
-                 targets=None,
-                 class_names=None,
-                 start_term_depth=0,
-                 knowledge_graph=False,
-                 mode="index_word",
-                 simple_clean=False,
-                 hyp='all',
-                 path=None):
+                 max_features = 100,
+                 disambiguation_window = 3,
+                 document_split_symbol = "MERGERTAG",
+                 heuristic = "mutual_info",
+                 num_cpu = "all",
+                 hypernym_distribution = "./hypernym_space/dist1.npy",
+                 targets = None,
+                 class_names = None,
+                 start_term_depth = 0,
+                 knowledge_graph = False,
+                 mode = "index_word",
+                 simple_clean = False,
+                 reverse_path_order = False,
+                 hyp = 'all',
+                 path = None):
         '''
         Initiate the core properties
         '''
 
         self.start_term_depth = start_term_depth
+        self.reverse_path_order = reverse_path_order
         self.class_names = class_names
         self.targets = targets
         self.heuristic = heuristic
@@ -108,7 +110,7 @@ class tax2vec:
         A simple fit method
         '''
         train_sequences, tokenizer, mlen = prep.data_docs_to_matrix(
-            text, mode=self.mode, simple_clean=self.simple_clean
+            text, mode = self.mode, simple_clean = self.simple_clean
         )  # simple clean removes english stopwords -> this is very basic preprocessing.
         self.tokenizer = tokenizer
         dmap = tokenizer.__dict__['word_index']
@@ -116,12 +118,12 @@ class tax2vec:
         if self.knowledge_graph:
             self.knowledge_graph_features(train_sequences,
                                           dmap,
-                                          hyp=self.hypernyms,
-                                          path=self.knowledge_graph_path)
+                                          hyp = self.hypernyms,
+                                          path = self.knowledge_graph_path)
         else:
             self.wordnet_features(train_sequences, dmap)
 
-    def disambiguation_synset(self, word, document, word_index=None):
+    def disambiguation_synset(self, word, document, word_index = None):
         '''
         First split each multidocument and select most frequent hypernyms in terms of occurrence.
         '''
@@ -138,7 +140,7 @@ class tax2vec:
                     hyps.append(hypernym)
             if len(hyps) > 0:
                 Counter(hyps)
-                return max(set(hyps), key=hyps.count)
+                return max(set(hyps), key = hyps.count)
             else:
                 return None
 
@@ -184,6 +186,8 @@ class tax2vec:
             if wsyn is not None:
                 initial_hypernyms.append(wsyn.name())
                 paths = wsyn.hypernym_paths()
+                if self.reverse_path_order:
+                    paths = paths[::-1]
                 for path in paths:
                     parent = None
                     for en, x in enumerate(path):
@@ -203,7 +207,7 @@ class tax2vec:
         initial_hypernyms = set(initial_hypernyms)
         return (initial_hypernyms, idx, hypernyms, local_graph)
 
-    def wordnet_features(self, data, wmap=None):
+    def wordnet_features(self, data, wmap = None):
         """
         Construct word wector maps and use graph-based properties to select relevant number of features..
         """
@@ -226,7 +230,7 @@ class tax2vec:
                     len(self.doc_seqs)))
             jobs = [(vec, idx) for idx, vec in enumerate(self.doc_seqs)]
             self.num_cpu
-            with multiprocessing.Pool(processes=self.num_cpu) as pool:
+            with multiprocessing.Pool(processes = self.num_cpu) as pool:
                 results = pool.starmap(self.document_kernel, jobs)
                 self.monitor("Constructing local taxonomy..")
 
@@ -269,11 +273,11 @@ class tax2vec:
         self.choose_feature_selection_heuristic()
 
     def choose_feature_selection_heuristic(self):
-        self.monitor("Selecting semantic terms..")
+        self.monitor(f"Selecting semantic terms with {self.heuristic}..")
         if self.heuristic == "closeness_centrality":
             self.heuristic_closeness()
 
-        if self.heuristic == "betweenness_centrality":
+        elif self.heuristic == "betweenness_centrality":
             self.heuristic_betweenness()
 
         elif self.heuristic == "rarest_terms":
@@ -287,8 +291,8 @@ class tax2vec:
 
         else:
             self.monitor(
-                "Please select one of the following heuristics: {}".format(
-                    "\n".join(self.possible_heuristics)))
+                "Please select one of the following heuristics: {} instead of: {}".format(
+                    "\n".join(self.possible_heuristics), self.heuristic))
 
     def map_data_to_digraph(self, path):
         graph = nx.DiGraph()
@@ -366,7 +370,7 @@ class tax2vec:
 
         return initial_terms, idx, hypernyms, local_graph
 
-    def knowledge_graph_features(self, data, wmap=None, hyp=1, path=None):
+    def knowledge_graph_features(self, data, wmap = None, hyp = 1, path = None):
         """
         Uses Microsoft Concet Graph for finding hypernyms
         :param data:
@@ -418,10 +422,10 @@ class tax2vec:
             else:
                 personalization[node] = 0
 
-        prC = nx.pagerank(self.WN, personalization=personalization)
+        prC = nx.pagerank(self.WN, personalization = personalization)
         self.semantic_candidates = []
         self.pagerank_scores = []
-        for en, k in enumerate(sorted(prC, key=prC.get, reverse=True)):
+        for en, k in enumerate(sorted(prC, key = prC.get, reverse = True)):
             if en < self.max_features:
                 self.semantic_candidates.append(k)
                 self.pagerank_scores.append(prC[k])
@@ -435,7 +439,7 @@ class tax2vec:
 
         eigC = nx.closeness_centrality(self.WN)
         self.semantic_candidates = []
-        for en, k in enumerate(sorted(eigC, key=eigC.get, reverse=False)):
+        for en, k in enumerate(sorted(eigC, key = eigC.get, reverse = False)):
             if en < self.max_features:
                 self.semantic_candidates.append(k)
             else:
@@ -448,7 +452,7 @@ class tax2vec:
 
         eigC = nx.betweenness_centrality(self.WN)
         self.semantic_candidates = []
-        for en, k in enumerate(sorted(eigC, key=eigC.get, reverse=False)):
+        for en, k in enumerate(sorted(eigC, key = eigC.get, reverse = False)):
             if en < self.max_features:
                 self.semantic_candidates.append(k)
             else:
@@ -464,8 +468,8 @@ class tax2vec:
         rarest_terms = Counter(flat_list)
         self.semantic_candidates = [
             x[0] for x in sorted(rarest_terms.items(),
-                                 key=operator.itemgetter(1),
-                                 reverse=False)
+                                 key = operator.itemgetter(1),
+                                 reverse = False)
         ][0:self.max_features]
         if self.hypernym_space is not None:
             try:
@@ -532,8 +536,8 @@ class tax2vec:
                     for enx, vec in enumerate(mutual_info_scores):
                         ranks[enx] = vec[el_idx]
                     sorted_ranks = sorted(ranks.items(),
-                                          key=operator.itemgetter(1),
-                                          reverse=True)
+                                          key = operator.itemgetter(1),
+                                          reverse = True)
                     sorted_outranks = []
                     for rank in sorted_ranks:
                         sorted_outranks.append(
@@ -602,9 +606,9 @@ class tax2vec:
         if self.parallel:
             self.num_cpu
             jobs = list(range(len(self.tmp_doc_seqs)))
-            with multiprocessing.Pool(processes=self.num_cpu) as pool:
+            with multiprocessing.Pool(processes = self.num_cpu) as pool:
                 results = tqdm(pool.imap(self.feature_kernel, jobs),
-                               total=len(jobs))
+                               total = len(jobs))
                 results = [x for y in results for x in y]
                 cs, rs, data = zip(*results)
         else:
@@ -615,7 +619,7 @@ class tax2vec:
                         # compute weighted tfidf
                         local = Counter(self.doc_synsets[ix])
                         lfreq = local[x]
-                        lmax = local[max(local, key=local.get)]
+                        lmax = local[max(local, key = local.get)]
                         lidf = len(self.all_hypernyms) / \
                             len([j for j in self.all_hypernyms if x in j])
                         # average weighted tfidf
@@ -626,7 +630,7 @@ class tax2vec:
                         data.append(weight)  # this can be arbitrary weight!
 
         assert len(rs) == len(cs)
-        m = sps.csr_matrix((data, (rs, cs)), shape=(rows, cols))
+        m = sps.csr_matrix((data, (rs, cs)), shape = (rows, cols))
         if self.initial_transformation:
             return self.feature_transform(m)
         else:
