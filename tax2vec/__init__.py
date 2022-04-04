@@ -20,7 +20,6 @@ except Exception as es:
     print(es)
 
 from nltk.wsd import lesk
-import multiprocessing as mp
 from sklearn.feature_selection import mutual_info_classif
 import networkx as nx
 from collections import Counter
@@ -88,7 +87,7 @@ class tax2vec:
         self.knowledge_graph_path = path
 
         if num_cpu == "all":
-            self.num_cpu = mp.cpu_count()
+            self.num_cpu = multiprocessing.cpu_count()
 
         elif num_cpu == 1:
             self.parallel = False
